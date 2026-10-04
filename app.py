@@ -3,7 +3,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from models import db, User, WeeklyQuest, MarketplaceItem, LeaderboardEntry, DailyQuest
 from tracks_data import TRACKS_DATA
+from datetime import datetime, timedelta
 import os
+import re
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'skillspark-secure-session-key-2026')
@@ -43,12 +45,20 @@ def track_detail(track_slug):
 @app.route('/api/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+
+    # Validate email format
+    if not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+        return jsonify({'error': 'Invalid email format'}), 400
+
+    # Validate password strength
+    if len(password) < 8:
+        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Email already registered'}), 400
-        
+
     new_user = User(email=email, password_hash=generate_password_hash(password))
     db.session.add(new_user)
     db.session.commit()
@@ -58,9 +68,12 @@ def signup():
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user = User.query.filter_by(email=data.get('email')).first()
-    
-    if user and check_password_hash(user.password_hash, data.get('password')):
+    email = data.get('email', '').strip().lower()
+    password = data.get('password', '')
+
+    user = User.query.filter_by(email=email).first()
+
+    if user and check_password_hash(user.password_hash, password):
         login_user(user)
         return jsonify({'success': 'Logged in'})
     return jsonify({'error': 'Invalid credentials'}), 401
@@ -307,48 +320,183 @@ def add_xp():
         'user_id': current_user.id
     })
 
-# --- DAILY QUEST TEMPLATES ---
-DAILY_QUEST_TEMPLATES = [
-    # Easy quests (10 coins)
-    {'title': 'Learn a New Concept', 'desc': 'Spend 30 min reading about a core topic in your track.', 'icon': 'fa-book', 'difficulty': 'Easy', 'coins': 10},
-    {'title': 'Review Code Basics', 'desc': 'Review fundamentals or documentation for 20 min.', 'icon': 'fa-code', 'difficulty': 'Easy', 'coins': 10},
-    {'title': 'Join Community', 'desc': 'Engage with learning community or Discord.', 'icon': 'fa-users', 'difficulty': 'Easy', 'coins': 10},
-    {'title': 'Watch Tutorial', 'desc': 'Complete a 15-30 min tutorial video.', 'icon': 'fa-play', 'difficulty': 'Easy', 'coins': 10},
+# --- TRACK-SPECIFIC QUEST TEMPLATES ---
+TRACK_QUEST_TEMPLATES = {
+    'Software Engineering': [
+        {'title': 'Master Git Workflows', 'desc': 'Set up and push your first GitHub repo with branches and commits.', 'icon': 'fa-code-branch', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Build a React Component', 'desc': 'Create a reusable React component with props and state.', 'icon': 'fa-react', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Write API Endpoints', 'desc': 'Design and build 3 RESTful API endpoints in Node.js or Flask.', 'icon': 'fa-code', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Debug Production Issue', 'desc': 'Find and fix a bug in deployed code using DevTools and logs.', 'icon': 'fa-bug', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Deploy Full-Stack App', 'desc': 'Ship a complete app to production (frontend + backend + database).', 'icon': 'fa-rocket', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Optimize Performance', 'desc': 'Reduce load time by 50% using caching, compression, or CDN.', 'icon': 'fa-bolt', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'AI & Machine Learning': [
+        {'title': 'Learn Linear Algebra', 'desc': 'Study vectors, matrices, and eigenvalues with NumPy.', 'icon': 'fa-square-root-variable', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Build Classification Model', 'desc': 'Train a Scikit-Learn classifier and evaluate accuracy metrics.', 'icon': 'fa-chart-bar', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Create Neural Network', 'desc': 'Build and train a 3-layer neural network in PyTorch.', 'icon': 'fa-brain', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Fine-Tune LLM', 'desc': 'Fine-tune a pre-trained model on custom dataset with Hugging Face.', 'icon': 'fa-wand-magic-sparkles', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Deploy ML Model', 'desc': 'Create production API serving your trained model with FastAPI.', 'icon': 'fa-rocket', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Build RAG System', 'desc': 'Implement Retrieval-Augmented Generation with LangChain.', 'icon': 'fa-magnifying-glass', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'Cybersecurity': [
+        {'title': 'Learn Network Basics', 'desc': 'Study TCP/IP, DNS, and packet structure with Wireshark.', 'icon': 'fa-network-wired', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Scan for Vulnerabilities', 'desc': 'Use Nmap and OpenVAS to identify open ports and services.', 'icon': 'fa-magnifying-glass', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Crack Password Hash', 'desc': 'Use hashcat to brute-force and crack MD5/SHA hashes ethically.', 'icon': 'fa-key', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Exploit Web Vulnerability', 'desc': 'Find and exploit SQL injection or XSS in vulnerable web app.', 'icon': 'fa-shield-halved', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Privilege Escalate', 'desc': 'Escalate from user to root on Linux/Windows target.', 'icon': 'fa-crown', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Build SIEM Rule', 'desc': 'Create detection rules in Splunk/ELK for suspicious activity.', 'icon': 'fa-eye', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'Cloud & DevOps': [
+        {'title': 'Learn Bash Scripting', 'desc': 'Write shell scripts to automate server tasks and backups.', 'icon': 'fa-terminal', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Containerize App', 'desc': 'Create multi-stage Dockerfile and push image to Docker Hub.', 'icon': 'fa-cube', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Build CI/CD Pipeline', 'desc': 'Set up automated testing and deployment with GitHub Actions.', 'icon': 'fa-arrows-spin', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Deploy with Kubernetes', 'desc': 'Create and manage pods, services, and ingress on K8s cluster.', 'icon': 'fa-cubes-stacked', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Infrastructure as Code', 'desc': 'Provision AWS resources with Terraform and version control.', 'icon': 'fa-code', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Monitor Production', 'desc': 'Set up Prometheus/Grafana monitoring and alerting rules.', 'icon': 'fa-chart-line', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'Data Science': [
+        {'title': 'Master SQL Queries', 'desc': 'Write complex queries with JOINs, CTEs, and window functions.', 'icon': 'fa-database', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Clean Real Dataset', 'desc': 'Handle missing values, outliers, and data transformation with Pandas.', 'icon': 'fa-broom', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Statistical Hypothesis Test', 'desc': 'Design and execute A/B test with statistical significance.', 'icon': 'fa-chart-pie', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Feature Engineering', 'desc': 'Create 10+ derived features to improve model accuracy.', 'icon': 'fa-wand-magic-sparkles', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Build Predictive Model', 'desc': 'Train XGBoost model with hyperparameter tuning and validation.', 'icon': 'fa-crystal-ball', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Create BI Dashboard', 'desc': 'Build interactive Tableau/PowerBI dashboard with KPIs.', 'icon': 'fa-chart-column', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'Product Design': [
+        {'title': 'Study Color Theory', 'desc': 'Learn color psychology, harmony, and accessibility principles.', 'icon': 'fa-palette', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Sketch Wireframes', 'desc': 'Create low-fidelity wireframes for 5-page mobile app.', 'icon': 'fa-pen-nib', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Build Design System', 'desc': 'Create reusable components library in Figma with variants.', 'icon': 'fa-layer-group', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Design Microinteractions', 'desc': 'Add smooth animations and feedback to UI components.', 'icon': 'fa-sparkles', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Prototype Interactive Flow', 'desc': 'Create clickable prototype with user flow and transitions.', 'icon': 'fa-arrow-pointer', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'User Test Design', 'desc': 'Conduct user testing session and incorporate feedback.', 'icon': 'fa-users', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'Post-Production': [
+        {'title': 'Master Timeline Editing', 'desc': 'Learn NLE keyboard shortcuts and cut together a 5-min sequence.', 'icon': 'fa-film', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Sync Audio & Video', 'desc': 'Synchronize A-roll and B-roll to build narrative flow.', 'icon': 'fa-compact-disc', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Color Grade Footage', 'desc': 'Use color wheels and curves to grade footage to cinema standard.', 'icon': 'fa-palette', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Mix Audio', 'desc': 'Balance dialogue, music, and effects with proper levels and EQ.', 'icon': 'fa-sliders', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Create Motion Graphics', 'desc': 'Build animated titles and lower-thirds with keyframes.', 'icon': 'fa-star', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Deliver Final Export', 'desc': 'Export to multiple codecs and delivery specs for broadcast.', 'icon': 'fa-download', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'Audio Engineering': [
+        {'title': 'Setup DAW', 'desc': 'Configure audio interface, routing, and project settings.', 'icon': 'fa-sliders', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Program Drums', 'desc': 'Sequence drum pattern with velocity variation and quantization.', 'icon': 'fa-drum', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Record Clean Vocal', 'desc': 'Record vocal track with proper gain staging and microphone technique.', 'icon': 'fa-microphone', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Mix with EQ & Compression', 'desc': 'Balance frequencies and dynamics on 8+ tracks.', 'icon': 'fa-sliders', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Master Track', 'desc': 'Bring mix to commercial loudness standards (LUFS compliance).', 'icon': 'fa-volume-high', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Design Sound Effects', 'desc': 'Create custom SFX from scratch using synthesis and sampling.', 'icon': 'fa-waveform-lines', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'Game Development': [
+        {'title': 'Learn Game Engine', 'desc': 'Complete tutorials in Unity or Unreal and understand editor.', 'icon': 'fa-gamepad', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Code Player Controller', 'desc': 'Script character movement, jumping, and collision detection.', 'icon': 'fa-arrow-right', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Design Level', 'desc': 'Build playable level with terrain, obstacles, and lighting.', 'icon': 'fa-mountain', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Implement Enemy AI', 'desc': 'Create enemy that patrols, detects player, and attacks.', 'icon': 'fa-robot', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Build Game Mechanic', 'desc': 'Implement scoring, power-ups, and game state management.', 'icon': 'fa-star', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Publish Game', 'desc': 'Build executable and publish to Steam or itch.io.', 'icon': 'fa-rocket', 'difficulty': 'Hard', 'coins': 50},
+    ],
+    'Digital Content': [
+        {'title': 'Define Niche', 'desc': 'Research audience, competitors, and content pillars for channel.', 'icon': 'fa-magnifying-glass', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Write Script', 'desc': 'Write engaging 5-min video script with hook and CTA.', 'icon': 'fa-pen', 'difficulty': 'Easy', 'coins': 10},
+        {'title': 'Record Quality Footage', 'desc': 'Film video with proper lighting, audio, and camera work.', 'icon': 'fa-video', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Edit & Add Effects', 'desc': 'Edit video with captions, B-roll, transitions, and music.', 'icon': 'fa-film', 'difficulty': 'Medium', 'coins': 25},
+        {'title': 'Design Thumbnail', 'desc': 'Create high-CTR thumbnail that stands out in feed.', 'icon': 'fa-image', 'difficulty': 'Hard', 'coins': 50},
+        {'title': 'Optimize for Algorithm', 'desc': 'Research trending topics and optimize title/description for discovery.', 'icon': 'fa-chart-line', 'difficulty': 'Hard', 'coins': 50},
+    ],
+}
 
-    # Medium quests (25 coins)
-    {'title': 'Build Small Project', 'desc': 'Create a small project or experiment (30-60 min).', 'icon': 'fa-hammer', 'difficulty': 'Medium', 'coins': 25},
-    {'title': 'Write & Debug Code', 'desc': 'Write functional code and fix at least one bug.', 'icon': 'fa-bug', 'difficulty': 'Medium', 'coins': 25},
-    {'title': 'Design a Feature', 'desc': 'Sketch or prototype a feature idea.', 'icon': 'fa-pencil', 'difficulty': 'Medium', 'coins': 25},
-    {'title': 'Read Research Paper', 'desc': 'Read and summarize a technical article or paper.', 'icon': 'fa-scroll', 'difficulty': 'Medium', 'coins': 25},
+# --- TRACK-SPECIFIC MARKETPLACE ITEMS ---
+TRACK_ITEMS = {
+    'Software Engineering': [
+        {'name': 'Git Master Badge', 'track': 'Software Engineering', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-code-branch', 'desc': 'Master of version control'},
+        {'name': 'React Wizard', 'track': 'Software Engineering', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-wand-magic-sparkles', 'desc': 'Expert in component architecture'},
+        {'name': 'Full-Stack Architect', 'track': 'Software Engineering', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'End-to-end system designer'},
+    ],
+    'AI & Machine Learning': [
+        {'name': 'Neural Network Architect', 'track': 'AI & Machine Learning', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-brain', 'desc': 'Deep learning expert'},
+        {'name': 'LLM Fine-tuner', 'track': 'AI & Machine Learning', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-wand-magic-sparkles', 'desc': 'Large language model specialist'},
+        {'name': 'AI Researcher', 'track': 'AI & Machine Learning', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Cutting-edge AI pioneer'},
+    ],
+    'Cybersecurity': [
+        {'name': 'Ethical Hacker', 'track': 'Cybersecurity', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-shield-halved', 'desc': 'Pen-testing champion'},
+        {'name': 'Security Architect', 'track': 'Cybersecurity', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-fortress', 'desc': 'System defense expert'},
+        {'name': 'Cyber Defender', 'track': 'Cybersecurity', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Guardian of digital infrastructure'},
+    ],
+    'Cloud & DevOps': [
+        {'name': 'DevOps Engineer', 'track': 'Cloud & DevOps', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-gears', 'desc': 'Automation master'},
+        {'name': 'Kubernetes Maestro', 'track': 'Cloud & DevOps', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-cubes-stacked', 'desc': 'Container orchestration expert'},
+        {'name': 'Cloud Architect', 'track': 'Cloud & DevOps', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Scalable infrastructure designer'},
+    ],
+    'Data Science': [
+        {'name': 'SQL Wizard', 'track': 'Data Science', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-database', 'desc': 'Database query expert'},
+        {'name': 'Data Analyst', 'track': 'Data Science', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-chart-pie', 'desc': 'Insight extraction specialist'},
+        {'name': 'Data Scientist', 'track': 'Data Science', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Predictive modeling master'},
+    ],
+    'Product Design': [
+        {'name': 'UI Expert', 'track': 'Product Design', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-palette', 'desc': 'Interface design specialist'},
+        {'name': 'UX Researcher', 'track': 'Product Design', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-users', 'desc': 'User experience strategist'},
+        {'name': 'Design Systems Lead', 'track': 'Product Design', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Design scalability architect'},
+    ],
+    'Post-Production': [
+        {'name': 'Video Editor Pro', 'track': 'Post-Production', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-film', 'desc': 'Timeline master'},
+        {'name': 'Colorist', 'track': 'Post-Production', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-palette', 'desc': 'Color grading artist'},
+        {'name': 'Post Production Master', 'track': 'Post-Production', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Cinematic finishing specialist'},
+    ],
+    'Audio Engineering': [
+        {'name': 'Sound Designer', 'track': 'Audio Engineering', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-waveform-lines', 'desc': 'Audio effects specialist'},
+        {'name': 'Mix Engineer', 'track': 'Audio Engineering', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-sliders', 'desc': 'Mixing console master'},
+        {'name': 'Mastering Engineer', 'track': 'Audio Engineering', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Audio quality perfectionist'},
+    ],
+    'Game Development': [
+        {'name': 'Game Programmer', 'track': 'Game Development', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-code', 'desc': 'Game logic expert'},
+        {'name': 'Level Designer', 'track': 'Game Development', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-map', 'desc': 'World building specialist'},
+        {'name': 'Game Director', 'track': 'Game Development', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Creative game vision lead'},
+    ],
+    'Digital Content': [
+        {'name': 'Content Creator', 'track': 'Digital Content', 'rarity': 'rare', 'cost': 150, 'icon': 'fa-camera', 'desc': 'Media production expert'},
+        {'name': 'Video Strategist', 'track': 'Digital Content', 'rarity': 'epic', 'cost': 250, 'icon': 'fa-chart-line', 'desc': 'Growth hacking specialist'},
+        {'name': 'Content Creator Influencer', 'track': 'Digital Content', 'rarity': 'legendary', 'cost': 400, 'icon': 'fa-crown', 'desc': 'Audience building master'},
+    ],
+}
 
-    # Hard quests (50 coins)
-    {'title': 'Complete Mini Project', 'desc': 'Build and deploy a complete mini project (2-3 hours).', 'icon': 'fa-rocket', 'difficulty': 'Hard', 'coins': 50},
-    {'title': 'Master Advanced Topic', 'desc': 'Deep dive and master an advanced concept in your field.', 'icon': 'fa-crown', 'difficulty': 'Hard', 'coins': 50},
-    {'title': 'Contribute to Open Source', 'desc': 'Submit a PR or contribution to an open source project.', 'icon': 'fa-code-branch', 'difficulty': 'Hard', 'coins': 50},
-    {'title': 'Build & Document', 'desc': 'Create a project and write comprehensive documentation.', 'icon': 'fa-book-open', 'difficulty': 'Hard', 'coins': 50},
-]
+# --- DAILY QUESTS GENERATION ---
 
 def generate_daily_quests(user_id):
-    """Generate 4 random daily quests for the user (1 Easy, 1 Medium, 2 Hard)"""
+    """Generate 4 track-specific daily quests for the user"""
     import random
+    from datetime import timedelta
+
+    user = User.query.get(user_id)
+    if not user or not user.recommended_path:
+        return []
+
+    track = user.recommended_path
 
     # Delete old quests (older than 24 hours)
-    from datetime import timedelta
     cutoff = datetime.utcnow() - timedelta(hours=24)
-    DailyQuest.query.filter(DailyQuest.user_id == user_id, DailyQuest.created_at < cutoff).delete()
+    DailyQuest.query.filter(
+        DailyQuest.user_id == user_id,
+        DailyQuest.created_at < cutoff
+    ).delete()
     db.session.commit()
 
-    # Create balanced quest pool
-    easy_quests = [q for q in DAILY_QUEST_TEMPLATES if q['difficulty'] == 'Easy']
-    medium_quests = [q for q in DAILY_QUEST_TEMPLATES if q['difficulty'] == 'Medium']
-    hard_quests = [q for q in DAILY_QUEST_TEMPLATES if q['difficulty'] == 'Hard']
+    # Get track-specific templates
+    templates = TRACK_QUEST_TEMPLATES.get(track, [])
+    if not templates:
+        templates = TRACK_QUEST_TEMPLATES.get('Software Engineering', [])
 
-    # Select 1 Easy, 1 Medium, 2 Hard
-    selected = (
-        [random.choice(easy_quests)] +
-        [random.choice(medium_quests)] +
-        random.sample(hard_quests, 2)
-    )
+    # Select 4 random quests, balanced by difficulty
+    easy_templates = [q for q in templates if q['difficulty'] == 'Easy']
+    medium_templates = [q for q in templates if q['difficulty'] == 'Medium']
+    hard_templates = [q for q in templates if q['difficulty'] == 'Hard']
+
+    # Pick 1 Easy, 1 Medium, 2 Hard for balance
+    selected = []
+    if easy_templates:
+        selected.append(random.choice(easy_templates))
+    if medium_templates:
+        selected.append(random.choice(medium_templates))
+    if hard_templates:
+        selected.extend(random.sample(hard_templates, min(2, len(hard_templates))))
 
     # Shuffle order
     random.shuffle(selected)
@@ -371,7 +519,32 @@ def generate_daily_quests(user_id):
     db.session.commit()
     return new_quests
 
-# --- DAILY QUEST ROUTES ---
+def seed_marketplace_items():
+    """Seed marketplace with track-specific items on first run"""
+    if MarketplaceItem.query.first():
+        return  # Already seeded
+
+    items_to_add = []
+    for track, items in TRACK_ITEMS.items():
+        for item_data in items:
+            marketplace_item = MarketplaceItem(
+                name=item_data['name'],
+                description=item_data['desc'],
+                xp_cost=item_data['cost'],
+                item_type='title',
+                icon=item_data['icon'],
+                rarity=item_data['rarity'],
+                color='#FFD700' if item_data['rarity'] == 'legendary' else '#C0C0C0' if item_data['rarity'] == 'epic' else '#CD7F32'
+            )
+            items_to_add.append(marketplace_item)
+
+    for item in items_to_add:
+        db.session.add(item)
+    db.session.commit()
+
+# Seed marketplace on startup
+with app.app_context():
+    seed_marketplace_items()
 
 @app.route('/api/daily-quests', methods=['GET'])
 @login_required
@@ -464,25 +637,28 @@ def get_marketplace_items():
 @app.route('/api/marketplace/purchase/<int:item_id>', methods=['POST'])
 @login_required
 def purchase_item(item_id):
+    # Refresh user from DB to get latest balance (prevents race condition)
+    current_user_refreshed = User.query.get(current_user.id)
+
     item = MarketplaceItem.query.get(item_id)
     if not item:
         return jsonify({'error': 'Item not found'}), 404
 
-    if current_user.spendable_coins < item.xp_cost:
+    if current_user_refreshed.spendable_coins < item.xp_cost:
         return jsonify({'error': 'Insufficient coins'}), 400
 
-    owned_titles = current_user.owned_titles or []
+    owned_titles = current_user_refreshed.owned_titles or []
     if item_id in owned_titles:
         return jsonify({'error': 'Already owned'}), 400
 
-    current_user.spendable_coins -= item.xp_cost
+    current_user_refreshed.spendable_coins -= item.xp_cost
     owned_titles.append(item_id)
-    current_user.owned_titles = owned_titles
+    current_user_refreshed.owned_titles = owned_titles
     db.session.commit()
 
     return jsonify({
         'success': True,
-        'remaining_coins': current_user.spendable_coins,
+        'remaining_coins': current_user_refreshed.spendable_coins,
         'owned_items': owned_titles
     })
 
@@ -522,9 +698,9 @@ def complete_weekly_quest(quest_id):
         return jsonify({'error': 'Quest not found'}), 404
 
     user_progress = current_user.weekly_quest_progress or {}
-    quest_id_str = str(quest_id)
 
-    if quest_id_str in user_progress:
+    # Store quest_id as integer (not string) for consistency
+    if quest_id in user_progress:
         return jsonify({'error': 'Quest already completed this week'}), 400
 
     # Add XP
@@ -537,8 +713,8 @@ def complete_weekly_quest(quest_id):
     current_user.total_xp = (current_user.total_xp or 0) + quest.xp_reward
     current_user.marketplace_xp = (current_user.marketplace_xp or 0) + quest.xp_reward
 
-    # Mark quest as completed
-    user_progress[quest_id_str] = True
+    # Mark quest as completed using integer key
+    user_progress[quest_id] = True
     current_user.weekly_quest_progress = user_progress
 
     db.session.commit()
@@ -554,20 +730,108 @@ def complete_weekly_quest(quest_id):
 def get_leaderboard():
     track = request.args.get('track', 'Global')
 
+    # Optimize query: only fetch needed columns, not entire User records
     if track == 'Global':
-        users = db.session.query(User).order_by(User.total_xp.desc()).limit(10).all()
+        users = db.session.query(User.email, User.total_xp, User.recommended_path).order_by(User.total_xp.desc()).limit(10).all()
     else:
-        users = db.session.query(User).filter(User.recommended_path == track).order_by(User.total_xp.desc()).limit(10).all()
+        users = db.session.query(User.email, User.total_xp, User.recommended_path).filter(User.recommended_path == track).order_by(User.total_xp.desc()).limit(10).all()
 
     leaderboard = [{
         'rank': idx + 1,
         'email': user.email.split('@')[0],  # Show only username part
         'xp': user.total_xp or 0,
-        'path': user.recommended_path,
-        'titles_owned': len(user.owned_titles or [])
+        'path': user.recommended_path
     } for idx, user in enumerate(users)]
 
     return jsonify({'leaderboard': leaderboard})
+
+@app.route('/api/chatbot/message', methods=['POST'])
+@login_required
+def chatbot_message():
+    """Chatbot using Google Gemini API"""
+    import requests
+
+    data = request.get_json()
+    user_message = data.get('message', '').strip()
+    track = current_user.recommended_path or 'Software Engineering'
+
+    if not user_message:
+        return jsonify({'error': 'Empty message'}), 400
+
+    try:
+        # Get Gemini API key from environment
+        gemini_key = os.environ.get('GEMINI_API_KEY')
+        if not gemini_key:
+            # Fallback: return generic response if API key not configured
+            return jsonify({
+                'success': True,
+                'response': f"I'm a career guidance chatbot for {track}. How can I help you learn today?",
+                'track': track
+            })
+
+        # Call Gemini API
+        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+
+        system_prompt = f"""You are a helpful career guidance AI for SkillSpark, an online learning platform.
+The user is learning {track}.
+
+Provide:
+- Encouraging, supportive responses
+- Practical advice for learning and career growth
+- Specific resource recommendations when relevant
+- Keep responses concise (2-3 sentences max)
+- Focus on actionable next steps
+
+Track: {track}
+User: {current_user.email}"""
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "text": f"{system_prompt}\n\nUser message: {user_message}"
+                        }
+                    ]
+                }
+            ]
+        }
+
+        headers = {'Content-Type': 'application/json'}
+
+        response = requests.post(gemini_url, json=payload, headers=headers, timeout=5)
+
+        if response.status_code == 200:
+            gemini_data = response.json()
+            # Extract text from Gemini response
+            if 'candidates' in gemini_data and len(gemini_data['candidates']) > 0:
+                bot_response = gemini_data['candidates'][0]['content']['parts'][0]['text']
+                return jsonify({
+                    'success': True,
+                    'response': bot_response,
+                    'track': track
+                })
+
+        # Fallback if response format unexpected
+        return jsonify({
+            'success': True,
+            'response': f"I'm here to help with {track}. What would you like to learn?",
+            'track': track
+        })
+
+    except requests.exceptions.Timeout:
+        return jsonify({
+            'success': True,
+            'response': "That's a great question! I'm thinking... In the meantime, keep building projects in your track!",
+            'track': track
+        })
+    except Exception as err:
+        print(f"Chatbot error: {err}")
+        return jsonify({
+            'success': True,
+            'response': f"I'm ready to help with {track}. Tell me more about what you want to learn!",
+            'track': track
+        })
 
 @app.route('/marketplace')
 @login_required

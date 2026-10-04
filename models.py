@@ -47,6 +47,7 @@ class MarketplaceItem(db.Model):
     icon = db.Column(db.String(50), default="fa-medal")
     color = db.Column(db.String(20), default="primary")
     rarity = db.Column(db.String(20), default="common")  # common, rare, epic, legendary
+    track = db.Column(db.String(100), default="Global")  # Track-specific or Global
 
 
 class DailyQuest(db.Model):

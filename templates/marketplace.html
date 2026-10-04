@@ -460,6 +460,8 @@ async function completeQuest(questId) {
             triggerXpToastAnimation(data.xp_earned);
             // Update header XP
             updateHeaderXP(data.new_total_xp);
+            // Reload leaderboard to show updated ranking
+            loadLeaderboard(currentLeaderboardFilter);
         } else {
             alert(data.error || 'Quest completion failed');
         }
@@ -471,11 +473,14 @@ async function completeQuest(questId) {
 function switchLeaderboard(track) {
     currentLeaderboardFilter = track;
 
-    // Update button states
-    document.querySelectorAll('.leaderboard-filter-btn').forEach(btn => {
+    // Update button states - use currentTarget or query all buttons
+    const allButtons = document.querySelectorAll('.leaderboard-filter-btn');
+    allButtons.forEach(btn => {
         btn.classList.remove('active');
+        if (btn.textContent.includes(track) || (track === 'Global' && btn.textContent.includes('Global'))) {
+            btn.classList.add('active');
+        }
     });
-    event.target.classList.add('active');
 
     // Load leaderboard
     loadLeaderboard(track);

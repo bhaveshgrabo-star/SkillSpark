@@ -735,6 +735,11 @@ async function completeDailyQuest(questId, coinsReward) {
             updateCoinsDisplay(data.new_spendable_coins);
             triggerCoinsToastAnimation(coinsReward);
             loadDailyQuests(); // Reload to reflect completed state
+
+            // Reload leaderboard if it exists (on marketplace page)
+            if (typeof currentLeaderboardFilter !== 'undefined' && typeof loadLeaderboard === 'function') {
+                loadLeaderboard(currentLeaderboardFilter);
+            }
         }
     } catch (err) {
         console.error('Error completing quest:', err);
@@ -943,95 +948,52 @@ function addChatMessage(message, sender) {
 }
 
 function processChatbotLogic(userInput, container) {
-    const lowerInput = userInput.toLowerCase();
-    let botResponse = [];
-    let nextOptions = [];
+    const messagesContainer = document.getElementById('chatMessages');
+    if (!messagesContainer) return;
 
-    if (chatbotState.step === 0) {
-        // First question: What type of problems energize you?
-        if (lowerInput.includes('build') || lowerInput.includes('web') || lowerInput.includes('software')) {
-            chatbotState.discipline = 'Software Engineering';
-            botResponse = [
-                "Great! Software Engineering is in high demand. Building scalable apps and backend systems is incredibly rewarding.",
-                "Next question: <strong>How much time can you dedicate per day?</strong>"
-            ];
-            nextOptions = ['1 hour daily (part-time)', '3+ hours daily (accelerated)'];
-        } else if (lowerInput.includes('ai') || lowerInput.includes('machine learning') || lowerInput.includes('model') || lowerInput.includes('neural')) {
-            chatbotState.discipline = 'AI & Machine Learning';
-            botResponse = [
-                "Excellent! AI & ML is the frontier. You''ll work with neural networks, LLMs, and cutting-edge AI agents.",
-                "Next question: <strong>How much time can you dedicate per day?</strong>"
-            ];
-            nextOptions = ['1 hour daily (part-time)', '3+ hours daily (accelerated)'];
-        } else if (lowerInput.includes('security') || lowerInput.includes('hacking') || lowerInput.includes('cyber') || lowerInput.includes('vulnerab')) {
-            chatbotState.discipline = 'Cybersecurity';
-            botResponse = [
-                "Perfect! Cybersecurity is critical and lucrative. You''ll learn offensive and defensive strategies.",
-                "Next question: <strong>How much time can you dedicate per day?</strong>"
-            ];
-            nextOptions = ['1 hour daily (part-time)', '3+ hours daily (accelerated)'];
-        } else if (lowerInput.includes('design') || lowerInput.includes('figma') || lowerInput.includes('ui') || lowerInput.includes('ux')) {
-            chatbotState.discipline = 'Product Design';
-            botResponse = [
-                "Wonderful! Product Design is incredibly creative. You''ll craft beautiful, intuitive user experiences.",
-                "Next question: <strong>How much time can you dedicate per day?</strong>"
-            ];
-            nextOptions = ['1 hour daily (part-time)', '3+ hours daily (accelerated)'];
-        } else {
-            botResponse = ["I''m not sure which path that aligns with. Let me ask again: <strong>What problems energize you most?</strong>"];
-            nextOptions = ['?? Building Software', '?? AI & ML', '?? Security', '?? Design'];
-            return addChatMessageWithOptions(botResponse, nextOptions);
-        }
-        chatbotState.step = 1;
-    } else if (chatbotState.step === 1) {
-        // Time commitment
-        if (lowerInput.includes('1') || lowerInput.includes('hour') || lowerInput.includes('part')) {
-            chatbotState.timeCommitment = '1 hour per day';
-            botResponse = [
-                "Smart! Part-time pace allows for consistent, sustainable learning.",
-                "Final question: <strong>What''s your budget for tools and platforms?</strong>"
-            ];
-            nextOptions = ['$0 (Free & Open Source)', '$100+ (Premium Tools)'];
-        } else if (lowerInput.includes('3') || lowerInput.includes('accelerat') || lowerInput.includes('sprint')) {
-            chatbotState.timeCommitment = '3+ hours per day';
-            botResponse = [
-                "Intense! You''ll move fast and build real projects quickly.",
-                "Final question: <strong>What''s your budget for tools and platforms?</strong>"
-            ];
-            nextOptions = ['$0 (Free & Open Source)', '$100+ (Premium Tools)'];
-        } else {
-            botResponse = ["Please choose your time commitment: <strong>1 hour/day</strong> or <strong>3+ hours/day</strong>?"];
-            nextOptions = ['1 hour daily', '3+ hours daily'];
-            return addChatMessageWithOptions(botResponse, nextOptions);
-        }
-        chatbotState.step = 2;
-    } else if (chatbotState.step === 2) {
-        // Budget
-        if (lowerInput.includes('0') || lowerInput.includes('free') || lowerInput.includes('open')) {
-            chatbotState.budget = 'Free';
-        } else if (lowerInput.includes('100') || lowerInput.includes('premium')) {
-            chatbotState.budget = 'Premium';
-        } else {
-            botResponse = ["Please choose: <strong>$0 (Free)</strong> or <strong>$100+ (Premium)</strong>?"];
-            nextOptions = ['$0 Free', '$100+ Premium'];
-            return addChatMessageWithOptions(botResponse, nextOptions);
-        }
+    // Add loading indicator
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'chat-message bot-message';
+    loadingDiv.id = 'bot-loading';
 
-        // Generate trajectory
-        const trajectory = generateTrajectory(chatbotState.discipline, chatbotState.timeCommitment, chatbotState.budget);
-        botResponse = [
-            "<strong>?? Your AI-Generated Trajectory</strong>",
-            "<strong>Discipline:</strong> " + chatbotState.discipline,
-            "<strong>Timeline:</strong> " + trajectory.timeline,
-            "<strong>Tools:</strong> " + trajectory.tools,
-            "<strong>Investment:</strong> " + trajectory.investment,
-            "Your customized learning blueprint is ready! Ready to start your journey?"
-        ];
-        nextOptions = ['Activate in Dashboard', 'View Full Syllabus'];
-        chatbotState.step = 3;
-    }
+    const loadingAvatar = document.createElement('div');
+    loadingAvatar.className = 'message-avatar bot';
+    loadingAvatar.innerHTML = '<i class="fa-solid fa-microchip"></i>';
 
-    addChatMessageWithOptions(botResponse, nextOptions);
+    const loadingContent = document.createElement('div');
+    loadingContent.className = 'message-content';
+    loadingContent.innerHTML = '<p><i class="fa-solid fa-circle-notch fa-spin"></i> Thinking...</p>';
+
+    loadingDiv.appendChild(loadingAvatar);
+    loadingDiv.appendChild(loadingContent);
+    messagesContainer.appendChild(loadingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Call the AI chatbot endpoint
+    fetch('/api/chatbot/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userInput })
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Remove loading indicator
+        const loading = document.getElementById('bot-loading');
+        if (loading) loading.remove();
+
+        // Add bot response
+        if (data.success) {
+            addChatMessage(data.response, 'bot');
+        } else {
+            addChatMessage("Sorry, I encountered an issue. Please try again.", 'bot');
+        }
+    })
+    .catch(err => {
+        console.error("Chatbot request failed:", err);
+        const loading = document.getElementById('bot-loading');
+        if (loading) loading.remove();
+        addChatMessage("Sorry, something went wrong. Please try again.", 'bot');
+    });
 }
 
 function addChatMessageWithOptions(messages, options) {
