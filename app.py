@@ -748,105 +748,51 @@ def get_leaderboard():
 @app.route('/api/chatbot/message', methods=['POST'])
 @login_required
 def chatbot_message():
-    """Chatbot using Google Gemini API"""
-    import requests
-
+    """Chatbot with predefined questions and responses"""
     data = request.get_json()
-    user_message = data.get('message', '').strip()
+    user_message = data.get('message', '').strip().lower()
     track = current_user.recommended_path or 'Software Engineering'
 
-    # If user hasn't selected a track yet, guide them
-    if track == "Undecided":
-        if any(word in user_message.lower() for word in ['path', 'track', 'choose', 'select', 'which']):
-            return jsonify({
-                'success': True,
-                'response': "Great question! You can choose from 10 career tracks: Software Engineering, AI & Machine Learning, Cybersecurity, Cloud & DevOps, Data Science, Product Design, Post-Production, Audio Engineering, Game Development, or Digital Content. Which interests you most?",
-                'track': track
-            })
-        else:
-            return jsonify({
-                'success': True,
-                'response': "First, let's choose your career track! I can help with: Software Engineering, AI & Machine Learning, Cybersecurity, Cloud & DevOps, Data Science, Product Design, Post-Production, Audio Engineering, Game Development, or Digital Content. What's your passion?",
-                'track': track
-            })
+    # Simple predefined responses based on keywords
+    responses = {
+        'hello': f"Hey! Welcome to {track}. How can I help you today?",
+        'hi': f"Hey there! Ready to learn more about {track}?",
+        'help': f"I'm here to guide you through {track}. What would you like to know?",
+        'resources': f"Check out tutorials and courses for {track}. Keep building projects!",
+        'motivation': "You've got this! Every expert started where you are. Keep pushing!",
+        'stuck': "Don't worry, everyone gets stuck. Take a break and come back fresh!",
+        'project': f"Start a small project in {track}. That's the best way to learn!",
+        'time': "Dedicate consistent time each day. Even 30 minutes daily builds skills.",
+        'next': f"Next step: Check out the daily quests for {track} tasks!",
+        'thanks': "You're welcome! Keep learning and building!",
+        'bye': "Good luck with your learning journey! See you soon.",
+        'hard': "The hard parts are where you grow the most. You've got this!",
+        'easy': "Great! Now try a harder challenge to level up your skills.",
+    }
 
-    if not user_message:
-        return jsonify({'error': 'Empty message'}), 400
+    # Find matching response
+    bot_response = None
+    for keyword, response in responses.items():
+        if keyword in user_message:
+            bot_response = response
+            break
 
-    try:
-        # Get Gemini API key from environment
-        gemini_key = os.environ.get('GEMINI_API_KEY')
-        if not gemini_key:
-            # Fallback: return generic response if API key not configured
-            return jsonify({
-                'success': True,
-                'response': f"I'm a career guidance chatbot for {track}. How can I help you learn today?",
-                'track': track
-            })
+    # If no match, return generic response
+    if not bot_response:
+        generic_responses = [
+            f"That's interesting! Tell me more about what you're working on in {track}.",
+            f"I'm here to help with {track}. What's your next goal?",
+            f"Keep up the great work with {track}!",
+            f"What would you like to focus on in {track} right now?"
+        ]
+        import random
+        bot_response = random.choice(generic_responses)
 
-        # Call Gemini API
-        gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-
-        system_prompt = f"""You are a helpful career guidance AI for SkillSpark, an online learning platform.
-The user is learning {track}.
-
-Provide:
-- Encouraging, supportive responses about their learning journey
-- Practical advice and next steps for career growth in {track}
-- Specific resource recommendations when relevant
-- Keep responses concise (2-3 sentences max)
-- Focus on actionable tips they can use today
-
-Career Track: {track}
-User Email: {current_user.email}"""
-
-        payload = {
-            "contents": [
-                {
-                    "parts": [
-                        {
-                            "text": f"{system_prompt}\n\nUser: {user_message}"
-                        }
-                    ]
-                }
-            ]
-        }
-
-        headers = {'Content-Type': 'application/json'}
-
-        response = requests.post(gemini_url, json=payload, headers=headers, timeout=5)
-
-        if response.status_code == 200:
-            gemini_data = response.json()
-            # Extract text from Gemini response
-            if 'candidates' in gemini_data and len(gemini_data['candidates']) > 0:
-                bot_response = gemini_data['candidates'][0]['content']['parts'][0]['text']
-                return jsonify({
-                    'success': True,
-                    'response': bot_response,
-                    'track': track
-                })
-
-        # Fallback if response format unexpected
-        return jsonify({
-            'success': True,
-            'response': f"That's a great question about {track}! Keep exploring and building projects. What else would you like to know?",
-            'track': track
-        })
-
-    except requests.exceptions.Timeout:
-        return jsonify({
-            'success': True,
-            'response': "I'm thinking about your question... In the meantime, check out the daily quests for hands-on learning!",
-            'track': track
-        })
-    except Exception as err:
-        print(f"Chatbot error: {err}")
-        return jsonify({
-            'success': True,
-            'response': f"I'm here to help with {track}. Tell me what you'd like to learn or any challenges you're facing!",
-            'track': track
-        })
+    return jsonify({
+        'success': True,
+        'response': bot_response,
+        'track': track
+    })
 
 @app.route('/marketplace')
 @login_required
