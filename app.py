@@ -755,6 +755,21 @@ def chatbot_message():
     user_message = data.get('message', '').strip()
     track = current_user.recommended_path or 'Software Engineering'
 
+    # If user hasn't selected a track yet, guide them
+    if track == "Undecided":
+        if any(word in user_message.lower() for word in ['path', 'track', 'choose', 'select', 'which']):
+            return jsonify({
+                'success': True,
+                'response': "Great question! You can choose from 10 career tracks: Software Engineering, AI & Machine Learning, Cybersecurity, Cloud & DevOps, Data Science, Product Design, Post-Production, Audio Engineering, Game Development, or Digital Content. Which interests you most?",
+                'track': track
+            })
+        else:
+            return jsonify({
+                'success': True,
+                'response': "First, let's choose your career track! I can help with: Software Engineering, AI & Machine Learning, Cybersecurity, Cloud & DevOps, Data Science, Product Design, Post-Production, Audio Engineering, Game Development, or Digital Content. What's your passion?",
+                'track': track
+            })
+
     if not user_message:
         return jsonify({'error': 'Empty message'}), 400
 
@@ -776,21 +791,21 @@ def chatbot_message():
 The user is learning {track}.
 
 Provide:
-- Encouraging, supportive responses
-- Practical advice for learning and career growth
+- Encouraging, supportive responses about their learning journey
+- Practical advice and next steps for career growth in {track}
 - Specific resource recommendations when relevant
 - Keep responses concise (2-3 sentences max)
-- Focus on actionable next steps
+- Focus on actionable tips they can use today
 
-Track: {track}
-User: {current_user.email}"""
+Career Track: {track}
+User Email: {current_user.email}"""
 
         payload = {
             "contents": [
                 {
                     "parts": [
                         {
-                            "text": f"{system_prompt}\n\nUser message: {user_message}"
+                            "text": f"{system_prompt}\n\nUser: {user_message}"
                         }
                     ]
                 }
@@ -815,21 +830,21 @@ User: {current_user.email}"""
         # Fallback if response format unexpected
         return jsonify({
             'success': True,
-            'response': f"I'm here to help with {track}. What would you like to learn?",
+            'response': f"That's a great question about {track}! Keep exploring and building projects. What else would you like to know?",
             'track': track
         })
 
     except requests.exceptions.Timeout:
         return jsonify({
             'success': True,
-            'response': "That's a great question! I'm thinking... In the meantime, keep building projects in your track!",
+            'response': "I'm thinking about your question... In the meantime, check out the daily quests for hands-on learning!",
             'track': track
         })
     except Exception as err:
         print(f"Chatbot error: {err}")
         return jsonify({
             'success': True,
-            'response': f"I'm ready to help with {track}. Tell me more about what you want to learn!",
+            'response': f"I'm here to help with {track}. Tell me what you'd like to learn or any challenges you're facing!",
             'track': track
         })
 
