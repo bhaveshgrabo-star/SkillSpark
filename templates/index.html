@@ -1,0 +1,943 @@
+{% extends "base.html" %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero reveal active">
+    <div class="hero-content">
+        <div class="hero-pill">
+            <span class="hero-pill-dot"></span>
+            <span>SkillSpark 2.0 &bull; Autonomous Career Acceleration</span>
+        </div>
+
+        <h1>Master the craft of the <br><span class="gradient-text">digital future.</span></h1>
+        
+        <p class="hero-tagline">
+            Autonomous career discovery paired with data-backed roadmaps, milestone tracking, and AI-compiled trajectories across 10 high-growth technical and creative disciplines.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#discover" class="btn btn-primary btn-glow">
+                <span>Explore 10 Specializations</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            <a href="#quiz" class="btn btn-secondary">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--secondary);"></i>
+                <span>Pathfinder Quiz</span>
+            </a>
+            <a href="#generator" class="btn btn-outline">
+                <i class="fa-solid fa-microchip" style="color: var(--primary);"></i>
+                <span>AI Blueprint</span>
+            </a>
+        </div>
+
+        <!-- Telemetry Dock -->
+        <div class="dashboard-bar">
+            <div class="dash-stat">
+                <span class="label">Current Trajectory</span>
+                <span class="value gradient-text" style="font-size: 1.15rem;">
+                    {{ current_user.recommended_path if current_user.is_authenticated else 'Sign In to Track' }}
+                </span>
+            </div>
+            <div class="dash-stat">
+                <span class="label">Specializations</span>
+                <span class="value" style="font-size: 1.1rem; color: var(--primary);">10 Disciplines</span>
+            </div>
+            <div class="dash-stat">
+                <span class="label">Curated Milestones</span>
+                <span class="value" style="font-size: 1.1rem; color: var(--accent-emerald);">50+ Phases</span>
+            </div>
+            <div class="dash-stat">
+                <span class="label">Learning Materials</span>
+                <span class="value" style="font-size: 1.1rem;">100% Free / OSS</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Bento Grid Category Showcase (10 Disciplines) -->
+<section id="discover" class="section-container">
+    <div style="text-align: center;">
+        <div class="section-badge">
+            <i class="fa-solid fa-compass"></i> Verified Pathways
+        </div>
+        <h2 class="section-title">Explore Career <span class="gradient-text">Disciplines</span></h2>
+        <p class="section-subtitle">
+            Curated curriculums designed to take you from foundational basics to deployable, production-ready portfolio work.
+        </p>
+    </div>
+
+    <div class="bento-grid">
+        <!-- ROW 1: Software Engineering (8) + Product Design (4) -->
+        <div class="bento-item bento-col-8 spotlight-card reveal" onclick="openSkillModal('coding')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-blue">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <span class="bento-tag" style="background: rgba(56, 189, 248, 0.1); color: var(--primary); border-color: rgba(56, 189, 248, 0.25);">
+                        High Industry Demand
+                    </span>
+                </div>
+                <h3>Software Engineering <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.85rem; color: var(--text-muted);"></i></h3>
+                <p>
+                    Build scalable digital infrastructure. Master modern frontend architectures, robust backend API frameworks, distributed databases, and CI/CD pipelines.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">React.js</span>
+                    <span class="tech-pill">Node.js</span>
+                    <span class="tech-pill">TypeScript</span>
+                    <span class="tech-pill">PostgreSQL</span>
+                    <span class="tech-pill">Git / GitHub</span>
+                    <span class="tech-pill">Vercel</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View 5-Phase Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">5 Curated Milestones</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-item bento-col-4 spotlight-card reveal" onclick="openSkillModal('designing')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-purple">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <span class="bento-tag">UX & Systems</span>
+                </div>
+                <h3>Product Design</h3>
+                <p>
+                    Shape intuitive digital experiences. Master typography hierarchies, color theory, design systems, and rapid prototyping in Figma.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">Figma Pro</span>
+                    <span class="tech-pill">Design Tokens</span>
+                    <span class="tech-pill">Spline 3D</span>
+                    <span class="tech-pill">Wireframing</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 2: AI & Machine Learning (6) + Cloud & DevOps (6) -->
+        <div class="bento-item bento-col-6 spotlight-card reveal" onclick="openSkillModal('ai')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-purple">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <span class="bento-tag" style="background: rgba(192, 132, 252, 0.1); color: var(--accent-purple); border-color: rgba(192, 132, 252, 0.25);">
+                        Next-Gen Frontier
+                    </span>
+                </div>
+                <h3>AI & Machine Learning <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.85rem; color: var(--text-muted);"></i></h3>
+                <p>
+                    Engineer intelligent systems. Learn vector mathematics, classical machine learning algorithms, deep neural architectures, and LLM fine-tuning with RAG pipelines.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">PyTorch</span>
+                    <span class="tech-pill">Hugging Face</span>
+                    <span class="tech-pill">LangChain</span>
+                    <span class="tech-pill">Scikit-Learn</span>
+                    <span class="tech-pill">RAG Architectures</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View 5-Phase Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                    <span style="font-size: 0.8rem; color: var(--accent-purple);">Hot Domain</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-item bento-col-6 spotlight-card reveal" onclick="openSkillModal('cloud')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-blue">
+                        <i class="fa-solid fa-cloud"></i>
+                    </div>
+                    <span class="bento-tag">Enterprise Scale</span>
+                </div>
+                <h3>Cloud & DevOps <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.85rem; color: var(--text-muted);"></i></h3>
+                <p>
+                    Architect automated, resilient infrastructure. Master Linux server internals, Docker containerization, Kubernetes cluster orchestration, and declarative Terraform IaC.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">AWS Cloud</span>
+                    <span class="tech-pill">Docker</span>
+                    <span class="tech-pill">Kubernetes</span>
+                    <span class="tech-pill">Terraform</span>
+                    <span class="tech-pill">GitHub Actions</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                    <span style="font-size: 0.8rem; color: var(--primary);">High Leverage</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 3: Cybersecurity (4) + Data Science (4) + Game Development (4) -->
+        <div class="bento-item bento-col-4 spotlight-card reveal" onclick="openSkillModal('security')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-rose">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <span class="bento-tag">Critical Defense</span>
+                </div>
+                <h3>Cybersecurity</h3>
+                <p>
+                    Protect digital assets. Master TCP/IP packet analysis, vulnerability reconnaissance, web exploitation, and defensive SIEM log monitoring.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">Kali Linux</span>
+                    <span class="tech-pill">Wireshark</span>
+                    <span class="tech-pill">Burp Suite</span>
+                    <span class="tech-pill">Nmap</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-item bento-col-4 spotlight-card reveal" onclick="openSkillModal('datascience')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-emerald">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <span class="bento-tag">Data Intelligence</span>
+                </div>
+                <h3>Data Science</h3>
+                <p>
+                    Extract high-leverage insights. Master complex SQL queries, Pandas statistical wrangling, predictive modeling, and executive KPI storytelling.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">Advanced SQL</span>
+                    <span class="tech-pill">Python Pandas</span>
+                    <span class="tech-pill">PowerBI</span>
+                    <span class="tech-pill">A/B Testing</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-item bento-col-4 spotlight-card reveal" onclick="openSkillModal('gaming')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-amber">
+                        <i class="fa-solid fa-cube"></i>
+                    </div>
+                    <span class="bento-tag">Real-Time 3D</span>
+                </div>
+                <h3>Game Development</h3>
+                <p>
+                    Create interactive virtual worlds. Understand physics simulations, component scripting, gameplay state loops, and spatial audio.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">Unity 3D</span>
+                    <span class="tech-pill">Unreal Engine</span>
+                    <span class="tech-pill">C# Scripting</span>
+                    <span class="tech-pill">Blender</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 4: Post-Production (4) + Audio Engineering (4) + Digital Content (4) -->
+        <div class="bento-item bento-col-4 spotlight-card reveal" onclick="openSkillModal('video')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-rose">
+                        <i class="fa-solid fa-video"></i>
+                    </div>
+                    <span class="bento-tag">Visual Narrative</span>
+                </div>
+                <h3>Post-Production</h3>
+                <p>
+                    Craft cinematic stories with non-linear editing workflows, node-based color grading, pacing rhythm, and motion graphics.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">DaVinci Resolve</span>
+                    <span class="tech-pill">Premiere Pro</span>
+                    <span class="tech-pill">Color Wheels</span>
+                    <span class="tech-pill">Sound FX</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-item bento-col-4 spotlight-card reveal" onclick="openSkillModal('music')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-amber">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <span class="bento-tag">Acoustics & DAW</span>
+                </div>
+                <h3>Audio Engineering</h3>
+                <p>
+                    Engineer professional soundscapes. Learn DAW architecture, synthesis, dynamic EQ/compression, and loudness mastering.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">Ableton Live</span>
+                    <span class="tech-pill">BandLab (Free)</span>
+                    <span class="tech-pill">Parametric EQ</span>
+                    <span class="tech-pill">Mastering</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bento-item bento-col-4 spotlight-card reveal" onclick="openSkillModal('content')">
+            <div>
+                <div class="bento-header">
+                    <div class="card-icon-box icon-indigo">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <span class="bento-tag">Audience Growth</span>
+                </div>
+                <h3>Digital Content</h3>
+                <p>
+                    Scale audience leverage. Master narrative retention pacing, high-CTR thumbnail psychology, and analytics algorithms.
+                </p>
+            </div>
+            <div>
+                <div class="bento-pills">
+                    <span class="tech-pill">Retention Loops</span>
+                    <span class="tech-pill">CapCut Pro</span>
+                    <span class="tech-pill">Notion</span>
+                    <span class="tech-pill">Analytics</span>
+                </div>
+                <div class="bento-footer">
+                    <span class="bento-cta">View Roadmap <i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Discipline Matrix (10 Disciplines) -->
+<section id="compare" class="section-container">
+    <div style="text-align: center;">
+        <div class="section-badge">
+            <i class="fa-solid fa-chart-simple"></i> Comprehensive Benchmarks
+        </div>
+        <h2 class="section-title">Discipline <span class="gradient-text">Matrix</span></h2>
+        <p class="section-subtitle">
+            Compare difficulty curves, creative intensity, and earning potential across all 10 specialized fields.
+        </p>
+    </div>
+
+    <div class="table-card reveal">
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Discipline</th>
+                    <th>Learning Curve</th>
+                    <th>Creativity Focus</th>
+                    <th>Earning Potential</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 1. Software Engineering -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-code" style="color: var(--primary);"></i>
+                            <div>
+                                <strong>Software Engineering</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Web, Cloud & Distributed Logic</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill steep"><i class="fa-solid fa-arrow-trend-up"></i> Steep</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 45%;"></div></div>
+                            <span class="meter-val">45%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">Top Tier</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('coding')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 2. AI & Machine Learning -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-brain" style="color: var(--accent-purple);"></i>
+                            <div>
+                                <strong>AI & Machine Learning</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Deep Learning, LLMs & Vectors</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill steep"><i class="fa-solid fa-arrow-trend-up"></i> Steep</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 50%; background: linear-gradient(90deg, #c084fc, #818cf8);"></div></div>
+                            <span class="meter-val">50%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$$$</span> <span style="font-size: 0.85rem; color: var(--accent-purple); font-weight: 700; margin-left: 6px;">Peak Tier</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('ai')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 3. Cybersecurity -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-shield-halved" style="color: var(--accent-rose);"></i>
+                            <div>
+                                <strong>Cybersecurity</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Pen-Testing, Defense & SIEM</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill steep"><i class="fa-solid fa-arrow-trend-up"></i> Steep</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 35%; background: linear-gradient(90deg, #f43f5e, #fb7185);"></div></div>
+                            <span class="meter-val">35%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">Top Tier</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('security')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 4. Cloud & DevOps -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-cloud" style="color: var(--primary);"></i>
+                            <div>
+                                <strong>Cloud & DevOps</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Docker, Kubernetes, AWS & IaC</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill steep"><i class="fa-solid fa-arrow-trend-up"></i> Steep</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 30%;"></div></div>
+                            <span class="meter-val">30%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">Top Tier</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('cloud')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 5. Data Science -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-chart-pie" style="color: var(--accent-emerald);"></i>
+                            <div>
+                                <strong>Data Science</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">SQL, Statistical Modeling & BI</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill mod"><i class="fa-solid fa-wave-square"></i> Moderate</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 60%; background: linear-gradient(90deg, #34d399, #38bdf8);"></div></div>
+                            <span class="meter-val">60%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">High</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('datascience')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 6. Product Design -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-layer-group" style="color: var(--accent-purple);"></i>
+                            <div>
+                                <strong>Product Design</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">UI/UX & Interactive Systems</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill mod"><i class="fa-solid fa-wave-square"></i> Moderate</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 90%;"></div></div>
+                            <span class="meter-val">90%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">High</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('designing')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 7. Post-Production -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-video" style="color: var(--accent-rose);"></i>
+                            <div>
+                                <strong>Post-Production</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Editing, Color & Motion</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill mod"><i class="fa-solid fa-wave-square"></i> Moderate</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 82%;"></div></div>
+                            <span class="meter-val">82%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">High</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('video')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 8. Audio Engineering -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-sliders" style="color: var(--accent-amber);"></i>
+                            <div>
+                                <strong>Audio Engineering</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Acoustics, Mixing & Mastering</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill steep"><i class="fa-solid fa-arrow-trend-up"></i> Steep</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 95%;"></div></div>
+                            <span class="meter-val">95%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">High</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('music')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 9. Game Development -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-cube" style="color: var(--accent-emerald);"></i>
+                            <div>
+                                <strong>Game Development</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Engines, Physics & Logic</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill steep"><i class="fa-solid fa-arrow-trend-up"></i> Steep</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 88%;"></div></div>
+                            <span class="meter-val">88%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">Top Tier</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('gaming')">Explore</button>
+                    </td>
+                </tr>
+
+                <!-- 10. Digital Content -->
+                <tr>
+                    <td>
+                        <div class="discipline-cell">
+                            <i class="fa-solid fa-chart-line" style="color: var(--secondary);"></i>
+                            <div>
+                                <strong>Digital Content</strong>
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">Audience, Strategy & Analytics</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="pill mod"><i class="fa-solid fa-wave-square"></i> Moderate</span></td>
+                    <td>
+                        <div class="meter-wrapper">
+                            <div class="meter-track"><div class="meter-fill" style="width: 95%;"></div></div>
+                            <span class="meter-val">95%</span>
+                        </div>
+                    </td>
+                    <td><span class="income-stars">$$$$</span> <span style="font-size: 0.85rem; color: var(--text-muted); margin-left: 6px;">Uncapped</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.82rem;" onclick="openSkillModal('content')">Explore</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Pathfinder Career Quiz 2.0 (Covering all 10 disciplines) -->
+<section id="quiz" class="section-container">
+    <div class="quiz-panel reveal">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div class="section-badge">
+                <i class="fa-solid fa-compass"></i> Interactive Assessment
+            </div>
+            <h2 style="font-size: 2.2rem; margin-bottom: 8px;">Pathfinder <span class="gradient-text">Quiz</span></h2>
+            <p style="color: var(--text-secondary); font-size: 1rem;">
+                Undecided? Answer 5 intuitive questions to uncover your ideal digital career fit across our 10 specializations.
+            </p>
+        </div>
+
+        <!-- Step Progress Indicator -->
+        <div class="quiz-progress-bar">
+            <div class="quiz-progress-fill" id="quiz-progress-fill" style="width: 20%;"></div>
+        </div>
+
+        <div id="quiz-block">
+            <!-- Question 1 -->
+            <div class="quiz-question active" id="q1">
+                <div class="quiz-step-label">Question 1 of 5</div>
+                <h3>When solving technical problems, what brings you the most satisfaction?</h3>
+                <p class="quiz-question-subtitle">Think about the moments when you feel most engaged and energized.</p>
+                <div class="quiz-options-list">
+                    <button class="quiz-btn" onclick="selectOption(this, 'q1', 'q2', 'coding')">
+                        <span class="option-indicator">A</span>
+                        <div>
+                            <span class="option-title">🎯 Building & Shipping</span>
+                            <span class="option-desc">Creating user-facing features, debugging complex systems, deploying live apps that people use daily.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q1', 'q2', 'ai')">
+                        <span class="option-indicator">B</span>
+                        <div>
+                            <span class="option-title">🧠 Understanding Patterns</span>
+                            <span class="option-desc">Training models, discovering insights from data, experimenting with AI agents and LLMs.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q1', 'q2', 'security')">
+                        <span class="option-indicator">C</span>
+                        <div>
+                            <span class="option-title">🔍 Finding Weaknesses</span>
+                            <span class="option-desc">Hunting vulnerabilities, testing system defenses, protecting critical infrastructure from threats.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q1', 'q2', 'designing')">
+                        <span class="option-indicator">D</span>
+                        <div>
+                            <span class="option-title">✨ Crafting Experiences</span>
+                            <span class="option-desc">Designing intuitive interfaces, creating visual systems, making products beautiful and usable.</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="quiz-question" id="q2">
+                <div class="quiz-step-label">Question 2 of 5</div>
+                <h3>What role excites you most in a tech team?</h3>
+                <p class="quiz-question-subtitle">Imagine yourself in different positions over the next 2 years.</p>
+                <div class="quiz-options-list">
+                    <button class="quiz-btn" onclick="selectOption(this, 'q2', 'q3', 'cloud')">
+                        <span class="option-indicator">A</span>
+                        <div>
+                            <span class="option-title">⚙️ Infrastructure Architect</span>
+                            <span class="option-desc">Designing scalable systems, automating deployments, orchestrating cloud infrastructure.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q2', 'q3', 'datascience')">
+                        <span class="option-indicator">B</span>
+                        <div>
+                            <span class="option-title">📊 Data Analyst / Scientist</span>
+                            <span class="option-desc">Extracting insights from data, building predictive models, influencing business decisions.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q2', 'q3', 'gaming')">
+                        <span class="option-indicator">C</span>
+                        <div>
+                            <span class="option-title">🎮 Interactive Creator</span>
+                            <span class="option-desc">Building real-time systems, crafting immersive experiences, working with physics and gameplay.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q2', 'q3', 'video')">
+                        <span class="option-indicator">D</span>
+                        <div>
+                            <span class="option-title">🎬 Creative Technologist</span>
+                            <span class="option-desc">Blending aesthetics with technology, editing visuals, crafting cinematic storytelling.</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="quiz-question" id="q3">
+                <div class="quiz-step-label">Question 3 of 5</div>
+                <h3>What's your ideal learning environment?</h3>
+                <p class="quiz-question-subtitle">How do you learn best and stay motivated?</p>
+                <div class="quiz-options-list">
+                    <button class="quiz-btn" onclick="selectOption(this, 'q3', 'q4', 'ai')">
+                        <span class="option-indicator">A</span>
+                        <div>
+                            <span class="option-title">🔬 Research & Experimentation</span>
+                            <span class="option-desc">Testing hypotheses, reading papers, playing with cutting-edge tools and frameworks.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q3', 'q4', 'security')">
+                        <span class="option-indicator">B</span>
+                        <div>
+                            <span class="option-title">🎯 Hands-On Challenges</span>
+                            <span class="option-desc">Solving real-world problems, competing in CTFs, hacking vulnerable systems in sandboxes.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q3', 'q4', 'cloud')">
+                        <span class="option-indicator">C</span>
+                        <div>
+                            <span class="option-title">🏗️ Building Systems</span>
+                            <span class="option-desc">Creating end-to-end solutions, automating workflows, deploying to production.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q3', 'q4', 'music')">
+                        <span class="option-indicator">D</span>
+                        <div>
+                            <span class="option-title">🎵 Creative Expression</span>
+                            <span class="option-desc">Experimenting with art/sound, exploring aesthetics, refining craft through iteration.</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="quiz-question" id="q4">
+                <div class="quiz-step-label">Question 4 of 5</div>
+                <h3>What does success look like to you in 18 months?</h3>
+                <p class="quiz-question-subtitle">What milestone would make you proud of your progress?</p>
+                <div class="quiz-options-list">
+                    <button class="quiz-btn" onclick="selectOption(this, 'q4', 'q5', 'datascience')">
+                        <span class="option-indicator">A</span>
+                        <div>
+                            <span class="option-title">📈 Data-Driven Impact</span>
+                            <span class="option-desc">Building predictive models that influence real business decisions and drive revenue.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q4', 'q5', 'content')">
+                        <span class="option-indicator">B</span>
+                        <div>
+                            <span class="option-title">📱 Audience & Influence</span>
+                            <span class="option-desc">Growing a loyal audience, creating content that resonates, building personal brand.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q4', 'q5', 'gaming')">
+                        <span class="option-indicator">C</span>
+                        <div>
+                            <span class="option-title">🎮 Shipped Experience</span>
+                            <span class="option-desc">Completing a fully playable game or interactive experience people enjoy.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q4', 'q5', 'coding')">
+                        <span class="option-indicator">D</span>
+                        <div>
+                            <span class="option-title">💼 Job-Ready Engineer</span>
+                            <span class="option-desc">Landing a well-paid engineering role at a competitive tech company.</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="quiz-question" id="q5">
+                <div class="quiz-step-label">Question 5 of 5</div>
+                <h3>Which industry problem keeps you up at night?</h3>
+                <p class="quiz-question-subtitle">What challenge in the world do you want to solve?</p>
+                <div class="quiz-options-list">
+                    <button class="quiz-btn" onclick="selectOption(this, 'q5', 'result', 'ai')">
+                        <span class="option-indicator">A</span>
+                        <div>
+                            <span class="option-title">🧠 AI Alignment & Safety</span>
+                            <span class="option-desc">Building AI systems that are trustworthy, interpretable, and aligned with human values.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q5', 'result', 'security')">
+                        <span class="option-indicator">B</span>
+                        <div>
+                            <span class="option-title">🛡️ Cybersecurity Crisis</span>
+                            <span class="option-desc">Protecting critical infrastructure and preventing nation-scale cyberattacks.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q5', 'result', 'cloud')">
+                        <span class="option-indicator">C</span>
+                        <div>
+                            <span class="option-title">☁️ Scalable Infrastructure</span>
+                            <span class="option-desc">Building systems that serve billions reliably, efficiently, and sustainably.</span>
+                        </div>
+                    </button>
+                    <button class="quiz-btn" onclick="selectOption(this, 'q5', 'result', 'content')">
+                        <span class="option-indicator">D</span>
+                        <div>
+                            <span class="option-title">📢 Information & Culture</span>
+                            <span class="option-desc">Creating media that educates, inspires, and brings people together.</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="quiz-result" style="display: none;">
+            <div class="result-badge">
+                <i class="fa-solid fa-sparkles"></i> Cognitive Diagnostic Alignment
+            </div>
+            
+            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-medium); border-radius: 18px; padding: 28px; margin: 16px auto 24px; max-width: 600px;">
+                <span style="font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono); color: var(--text-muted); font-weight: 700;">Primary Match (96% Confidence)</span>
+                <h3 id="result-text" class="gradient-text" style="font-size: 2.4rem; margin: 6px 0 12px;">...</h3>
+                <p id="result-desc" style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 20px; line-height: 1.6;">
+                    Your profile indicates strong alignment with scalable systems design, logical problem breakdown, and engineering rigor.
+                </p>
+
+                <!-- Breakdown bars -->
+                <div style="display: flex; flex-direction: column; gap: 10px; text-align: left; margin-bottom: 16px;">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+                            <span id="match-1-label" style="font-weight: 600; color: var(--primary);">Primary Specialization</span>
+                            <span id="match-1-val" style="font-family: var(--font-mono); color: var(--primary);">96%</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                            <div id="match-1-bar" style="width: 96%; height: 100%; background: linear-gradient(90deg, var(--secondary), var(--primary)); border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
+                            <span id="match-2-label" style="font-weight: 600; color: var(--text-muted);">Secondary Alignment</span>
+                            <span id="match-2-val" style="font-family: var(--font-mono); color: var(--text-muted);">82%</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                            <div id="match-2-bar" style="width: 82%; height: 100%; background: rgba(255,255,255,0.25); border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-primary btn-glow" id="quiz-explore-btn">
+                    <i class="fa-solid fa-rocket"></i>
+                    <span>Activate Trajectory in Mission Control</span>
+                </button>
+                <a id="quiz-deepdive-link" href="/track/software-engineering" class="btn btn-secondary">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>View Syllabus & 3 Capstones</span>
+                </a>
+                <button class="btn btn-outline" onclick="resetQuiz()">
+                    <i class="fa-solid fa-rotate-left"></i> Retake
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- AI Trajectory Engine (Chatbot Interface) -->
+<section id="generator" class="section-container">
+    <div class="fluid-engine-container reveal">
+        <!-- Animated fluid mesh colors behind frosted glass -->
+        <div class="aurora-backdrop">
+            <div class="aurora-blob blob-cyan"></div>
+            <div class="aurora-blob blob-purple"></div>
+            <div class="aurora-blob blob-emerald"></div>
+        </div>
+
+        <div class="fluid-glass-deck">
+            <div class="engine-header">
+                <div>
+                    <div class="glass-tab-header">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Autonomous Architecture Engine</span>
+                    </div>
+                    <h2 style="font-size: 2.3rem; margin: 4px 0 0;">AI Trajectory <span class="gradient-text">Chatbot</span></h2>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 6px;">
+                        Chat with our AI to discover your ideal learning path. Answer questions conversationally and get a custom trajectory.
+                    </p>
+                </div>
+                <div class="card-icon-box icon-blue" style="width: 58px; height: 58px; font-size: 1.7rem; background: rgba(56, 189, 248, 0.15); box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);">
+                    <i class="fa-solid fa-message"></i>
+                </div>
+            </div>
+
+            <!-- Chatbot Container -->
+            <div class="chatbot-container">
+                <!-- Chat Messages Area -->
+                <div id="chatMessages" class="chat-messages">
+                    <div class="chat-message bot-message">
+                        <div class="message-avatar bot">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <div class="message-content">
+                            <p>Hey there! 👋 I'm your AI Trajectory guide. I'll help you discover the perfect learning path based on your goals, interests, and constraints.</p>
+                            <p>Let's start simple: <strong>What type of problems energize you most?</strong></p>
+                            <div class="quick-options" style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+                                <button class="quick-option" onclick="chatbotSendMessage('Building web apps and software')">💻 Building Software</button>
+                                <button class="quick-option" onclick="chatbotSendMessage('Training AI models')">🤖 AI & ML</button>
+                                <button class="quick-option" onclick="chatbotSendMessage('Finding security vulnerabilities')">🔒 Security</button>
+                                <button class="quick-option" onclick="chatbotSendMessage('Designing beautiful interfaces')">🎨 Design</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <div class="chat-input-area">
+                    <form id="chatForm" onsubmit="handleChatSubmit(event)">
+                        <div class="input-row">
+                            <input
+                                type="text"
+                                id="chatInput"
+                                class="chat-input"
+                                placeholder="Tell me about your goals..."
+                                autocomplete="off"
+                            >
+                            <button type="submit" class="btn btn-primary chat-send-btn">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

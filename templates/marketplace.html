@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="section-container" style="padding-top: 130px; min-height: 85vh;">
+    <!-- Header -->
+    <div class="dashboard-header-card reveal active" style="margin-bottom: 40px;">
+        <div class="workspace-user-info">
+            <div class="section-badge">
+                <i class="fa-solid fa-shop"></i> Economy Hub
+            </div>
+            <h1>XP <span class="gradient-text">Marketplace</span></h1>
+            <p>Earn XP through quests and tasks, then spend it on exclusive titles and cosmetics.</p>
+        </div>
+    </div>
+
+    <!-- Main Grid: Marketplace | Weekly Quests | Leaderboard -->
+    <div style="display: grid; grid-template-columns: 2fr 1.5fr; gap: 32px; align-items: start;">
+
+        <!-- LEFT COLUMN: Marketplace + Weekly Quests -->
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+
+            <!-- MARKETPLACE SECTION -->
+            <div class="glass-panel reveal active" style="padding: 28px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <span class="section-badge" style="margin-bottom: 4px;">Cosmetics & Titles</span>
+                        <h3 style="font-size: 1.35rem; margin: 0;">XP Shop</h3>
+                    </div>
+                    <div class="xp-badge" style="font-size: 1.1rem; padding: 10px 16px;">
+                        <i class="fa-solid fa-bolt"></i> <span id="wallet-xp">0</span> XP
+                    </div>
+                </div>
+
+                <div id="marketplace-items" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px;">
+                    <!-- Items will be loaded here -->
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+                        <i class="fa-solid fa-loader fa-spin" style="font-size: 1.5rem;"></i>
+                        <p style="margin-top: 12px;">Loading shop...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEEKLY QUESTS SECTION -->
+            <div class="glass-panel reveal active" style="padding: 28px; border-color: rgba(52, 211, 153, 0.25);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <span class="section-badge" style="background: rgba(52, 211, 153, 0.1); color: var(--accent-emerald); border-color: rgba(52, 211, 153, 0.25); margin-bottom: 4px;">
+                            <i class="fa-solid fa-star"></i> Limited Time
+                        </span>
+                        <h3 style="font-size: 1.35rem; margin: 0;">Weekly Quests</h3>
+                    </div>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Resets Monday</span>
+                </div>
+
+                <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 20px;">
+                    Complete rotating weekly challenges for bonus XP. Quests reset every Monday!
+                </p>
+
+                <div id="weekly-quests" style="display: flex; flex-direction: column; gap: 14px;">
+                    <!-- Quests will be loaded here -->
+                    <div style="text-align: center; color: var(--text-muted); padding: 30px 20px;">
+                        <i class="fa-solid fa-loader fa-spin"></i>
+                        <p style="margin-top: 12px;">Loading quests...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Leaderboard -->
+        <div class="glass-panel reveal active" style="padding: 28px; height: fit-content;">
+            <div style="margin-bottom: 20px;">
+                <span class="section-badge" style="background: rgba(129, 140, 248, 0.1); color: var(--secondary); border-color: rgba(129, 140, 248, 0.25); margin-bottom: 4px;">
+                    <i class="fa-solid fa-trophy"></i> Rankings
+                </span>
+                <h3 style="font-size: 1.15rem; margin: 0;">Global Leaderboard</h3>
+            </div>
+
+            <!-- Leaderboard Filter -->
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="leaderboard-filter-btn active" onclick="switchLeaderboard('Global')">
+                    <i class="fa-solid fa-globe"></i> Global
+                </button>
+                <button class="leaderboard-filter-btn" onclick="switchLeaderboard('Software Engineering')">
+                    <i class="fa-solid fa-code"></i> Software
+                </button>
+                <button class="leaderboard-filter-btn" onclick="switchLeaderboard('AI & Machine Learning')">
+                    <i class="fa-solid fa-brain"></i> AI/ML
+                </button>
+            </div>
+
+            <!-- Leaderboard List -->
+            <div id="leaderboard-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Leaderboard will be loaded here -->
+                <div style="text-align: center; color: var(--text-muted); padding: 30px 20px;">
+                    <i class="fa-solid fa-loader fa-spin"></i>
+                    <p style="margin-top: 12px;">Loading rankings...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.marketplace-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-smooth);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.marketplace-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.marketplace-item-icon {
+    font-size: 2rem;
+}
+
+.marketplace-item-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.marketplace-item-cost {
+    font-size: 0.8rem;
+    color: var(--accent-emerald);
+    font-family: var(--font-mono);
+    font-weight: 700;
+}
+
+.marketplace-item.owned {
+    opacity: 0.6;
+    border-color: var(--accent-emerald);
+    background: rgba(52, 211, 153, 0.05);
+}
+
+.marketplace-item-owned-badge {
+    font-size: 0.7rem;
+    background: var(--accent-emerald);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.quest-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all var(--transition-smooth);
+}
+
+.quest-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--primary);
+}
+
+.quest-card.completed {
+    background: rgba(52, 211, 153, 0.1);
+    border-color: var(--accent-emerald);
+}
+
+.quest-info {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.quest-icon {
+    font-size: 1.5rem;
+    margin-top: 2px;
+}
+
+.quest-details {
+    text-align: left;
+}
+
+.quest-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.quest-difficulty {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.quest-action {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.quest-xp {
+    font-size: 0.85rem;
+    color: var(--accent-emerald);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    text-align: right;
+    min-width: 50px;
+}
+
+.quest-btn {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    background: rgba(52, 211, 153, 0.15);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    color: var(--accent-emerald);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.quest-btn:hover:not(:disabled) {
+    background: rgba(52, 211, 153, 0.25);
+    transform: translateY(-1px);
+}
+
+.quest-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.leaderboard-filter-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.leaderboard-filter-btn:hover {
+    border-color: var(--primary);
+    background: rgba(56, 189, 248, 0.1);
+}
+
+.leaderboard-filter-btn.active {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.leaderboard-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    transition: all var(--transition-fast);
+}
+
+.leaderboard-row:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--primary);
+}
+
+.leaderboard-rank {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    min-width: 30px;
+}
+
+.leaderboard-rank.top-1 {
+    color: #fbbf24;
+    font-size: 1rem;
+}
+
+.leaderboard-rank.top-2 {
+    color: #c0c0c0;
+    font-size: 1rem;
+}
+
+.leaderboard-rank.top-3 {
+    color: #cd7f32;
+    font-size: 1rem;
+}
+
+.leaderboard-name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    text-align: left;
+}
+
+.leaderboard-xp {
+    font-size: 0.85rem;
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    text-align: right;
+    min-width: 60px;
+}
+</style>
+
+<script>
+let currentLeaderboardFilter = 'Global';
+
+// Load marketplace items on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadMarketplaceItems();
+    loadWeeklyQuests();
+    loadLeaderboard('Global');
+});
+
+async function loadMarketplaceItems() {
+    try {
+        const res = await fetch('/api/marketplace/items');
+        const data = await res.json();
+
+        const container = document.getElementById('marketplace-items');
+        container.innerHTML = '';
+
+        if (data.items.length === 0) {
+            container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No items available</p>';
+            return;
+        }
+
+        data.items.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = `marketplace-item ${item.owned ? 'owned' : ''}`;
+            itemEl.innerHTML = `
+                <div class="marketplace-item-icon">${getItemIcon(item)}</div>
+                <div class="marketplace-item-name">${item.name}</div>
+                ${item.owned ? '<div class="marketplace-item-owned-badge">Owned</div>' : `<div class="marketplace-item-cost"><i class="fa-solid fa-bolt"></i> ${item.xp_cost}</div>`}
+            `;
+            if (!item.owned) {
+                itemEl.onclick = () => purchaseItem(item.id, item.xp_cost);
+            }
+            container.appendChild(itemEl);
+        });
+
+        // Update wallet XP
+        document.getElementById('wallet-xp').innerText = data.user_xp;
+    } catch (err) {
+        console.error('Failed to load marketplace:', err);
+    }
+}
+
+async function loadWeeklyQuests() {
+    try {
+        const res = await fetch('/api/weekly-quests');
+        const data = await res.json();
+
+        const container = document.getElementById('weekly-quests');
+        container.innerHTML = '';
+
+        if (data.quests.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No quests this week</p>';
+            return;
+        }
+
+        data.quests.forEach(quest => {
+            const questEl = document.createElement('div');
+            questEl.className = `quest-card ${quest.completed ? 'completed' : ''}`;
+            questEl.innerHTML = `
+                <div class="quest-info">
+                    <div class="quest-icon">${getQuestIcon(quest)}</div>
+                    <div class="quest-details">
+                        <div class="quest-title">${quest.title}</div>
+                        <div class="quest-difficulty">${quest.difficulty}</div>
+                    </div>
+                </div>
+                <div class="quest-action">
+                    <div class="quest-xp">+${quest.xp_reward}</div>
+                    <button class="quest-btn" onclick="completeQuest(${quest.id})" ${quest.completed ? 'disabled' : ''}>
+                        ${quest.completed ? '✓ Done' : 'Complete'}
+                    </button>
+                </div>
+            `;
+            container.appendChild(questEl);
+        });
+    } catch (err) {
+        console.error('Failed to load quests:', err);
+    }
+}
+
+async function loadLeaderboard(track) {
+    try {
+        const res = await fetch(`/api/leaderboard?track=${encodeURIComponent(track)}`);
+        const data = await res.json();
+
+        const container = document.getElementById('leaderboard-list');
+        container.innerHTML = '';
+
+        if (data.leaderboard.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No users yet</p>';
+            return;
+        }
+
+        data.leaderboard.forEach((entry, idx) => {
+            const rowEl = document.createElement('div');
+            rowEl.className = 'leaderboard-row';
+            const rankClass = idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : '';
+            rowEl.innerHTML = `
+                <div class="leaderboard-rank ${rankClass}">${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '#' + (idx + 1)}</div>
+                <div class="leaderboard-name">${entry.email}</div>
+                <div class="leaderboard-xp">${entry.xp.toLocaleString()}</div>
+            `;
+            container.appendChild(rowEl);
+        });
+    } catch (err) {
+        console.error('Failed to load leaderboard:', err);
+    }
+}
+
+async function purchaseItem(itemId, cost) {
+    try {
+        const res = await fetch(`/api/marketplace/purchase/${itemId}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (res.ok) {
+            // Update wallet
+            document.getElementById('wallet-xp').innerText = data.remaining_xp;
+            // Reload marketplace
+            loadMarketplaceItems();
+            // Show success toast
+            triggerXpToastAnimation(-cost);
+        } else {
+            alert(data.error || 'Purchase failed');
+        }
+    } catch (err) {
+        console.error('Purchase failed:', err);
+    }
+}
+
+async function completeQuest(questId) {
+    try {
+        const res = await fetch(`/api/weekly-quests/complete/${questId}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (res.ok) {
+            // Reload quests
+            loadWeeklyQuests();
+            // Show XP earned
+            triggerXpToastAnimation(data.xp_earned);
+            // Update header XP
+            updateHeaderXP(data.new_total_xp);
+        } else {
+            alert(data.error || 'Quest completion failed');
+        }
+    } catch (err) {
+        console.error('Quest completion failed:', err);
+    }
+}
+
+function switchLeaderboard(track) {
+    currentLeaderboardFilter = track;
+
+    // Update button states
+    document.querySelectorAll('.leaderboard-filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Load leaderboard
+    loadLeaderboard(track);
+}
+
+function getItemIcon(item) {
+    const icons = {
+        'Master Engineer': '🛠️',
+        'Data Wizard': '📊',
+        'AI Pioneer': '🤖',
+        'Security Guardian': '🛡️',
+        'Cloud Architect': '☁️',
+        'Design Master': '🎨',
+        'Content Creator': '📹',
+        'Game Developer': '🎮'
+    };
+    return icons[item.name] || '⭐';
+}
+
+function getQuestIcon(quest) {
+    const icons = {
+        'Easy': '🟢',
+        'Medium': '🟡',
+        'Hard': '🔴'
+    };
+    return icons[quest.difficulty] || '⭐';
+}
+</script>
+
+{% endblock %}

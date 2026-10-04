@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSpark | The Next-Gen Skill Accelerator</title>
+    <!-- Google Fonts: Plus Jakarta Sans, Inter, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="bg-ambient-glow"></div>
+    <canvas id="particles-js"></canvas>
+
+    <!-- Global Top Navbar -->
+    <nav id="navbar">
+        <div class="nav-content">
+            <a href="/" class="logo-wrapper">
+                <div class="logo-icon"><i class="fa-solid fa-bolt"></i></div>
+                <span class="logo-text">Skill<span class="gradient-text">Spark</span></span>
+            </a>
+            
+            <div class="nav-links">
+                <a href="/#discover" class="nav-link">Tracks</a>
+                <a href="/#compare" class="nav-link">Matrix</a>
+                <a href="/#quiz" class="nav-link">Pathfinder</a>
+                <a href="/#generator" class="nav-link">AI Blueprint</a>
+                
+                {% if current_user.is_authenticated %}
+                    <a href="/dashboard" class="nav-link active-link">
+                        <i class="fa-solid fa-compass" style="margin-right: 4px;"></i> Workspace
+                    </a>
+                    <a href="/marketplace" class="nav-link">
+                        <i class="fa-solid fa-shop" style="margin-right: 4px;"></i> Marketplace
+                    </a>
+                    <span class="xp-badge">
+                        <i class="fa-solid fa-coin"></i> <span id="nav-coins-counter">0</span> Coins
+                    </span>
+                    <a href="/logout" class="btn btn-outline" style="padding: 7px 16px; font-size: 0.85rem;">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </a>
+                {% else %}
+                    <button onclick="openAuthModal()" class="btn btn-primary btn-pill" style="padding: 8px 20px; font-size: 0.88rem;">
+                        <i class="fa-solid fa-user-astronaut"></i> Sign In
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dynamic Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global XP Notification Toast -->
+    <div id="xp-toast" class="xp-toast-hidden">
+        <div class="xp-toast-content">
+            <div class="xp-toast-icon"><i class="fa-solid fa-bolt"></i></div>
+            <div class="xp-toast-text">
+                <h5>XP Credited</h5>
+                <p>+<span id="toast-xp-amount">0</span> XP added to trajectory</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Universal Modal System -->
+    <div class="modal-overlay" id="globalModal" onclick="handleOverlayClick(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal Title</h3>
+                <button class="close-btn" onclick="closeModal()" aria-label="Close Modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Redesigned Modern Footer -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="/" class="logo-wrapper" style="margin-bottom: 12px;">
+                    <div class="logo-icon" style="width: 28px; height: 28px; font-size: 0.9rem;"><i class="fa-solid fa-bolt"></i></div>
+                    <span class="logo-text" style="font-size: 1.2rem;">Skill<span class="gradient-text">Spark</span></span>
+                </a>
+                <p style="color: var(--text-secondary); font-size: 0.92rem; max-width: 440px; margin-bottom: 14px;">
+                    Autonomous capability acceleration and curated production roadmaps for high-growth digital domains.
+                </p>
+                <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                    <span style="font-size: 0.82rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="hero-pill-dot" style="background: #34d399; box-shadow: 0 0 6px #34d399;"></span> System Live & Operational
+                    </span>
+                    <span style="color: var(--border-medium);">|</span>
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">
+                        Engineered with <i class="fa-solid fa-heart" style="color: #f43f5e; margin: 0 2px;"></i> by 
+                        <strong class="gradient-text">Bhavesh</strong>
+                    </span>
+                </div>
+            </div>
+
+            <div class="footer-socials">
+                <a href="https://linkedin.com/in/YOUR_PROFILE" target="_blank" class="social-icon-btn" title="LinkedIn">
+                    <i class="fa-brands fa-linkedin-in"></i>
+                </a>
+                <a href="https://twitter.com/YOUR_PROFILE" target="_blank" class="social-icon-btn" title="Twitter / X">
+                    <i class="fa-brands fa-x-twitter"></i>
+                </a>
+                <a href="https://instagram.com/YOUR_PROFILE" target="_blank" class="social-icon-btn" title="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+                <a href="https://github.com/YOUR_PROFILE" target="_blank" class="social-icon-btn" title="GitHub">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core App JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

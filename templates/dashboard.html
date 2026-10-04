@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="section-container" style="padding-top: 130px; min-height: 85vh;">
+    <!-- Dashboard Mission Control Header -->
+    <div class="dashboard-header-card reveal active">
+        <div class="workspace-user-info">
+            <div class="section-badge" style="margin-bottom: 10px;">
+                <i class="fa-solid fa-satellite-dish"></i> Daily Sprint Mission Control
+            </div>
+            <h1>Mission <span class="gradient-text">Control</span></h1>
+            <p>Complete 4 daily quests, earn coins, and climb the leaderboard.</p>
+        </div>
+
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+            <!-- Coins Counter Widget -->
+            <div class="rank-progress-widget">
+                <div class="rank-badge-pill">
+                    <i class="fa-solid fa-coin"></i>
+                    <span>Coins</span>
+                </div>
+                <div style="font-size: 0.95rem; color: var(--text-secondary); margin-top: 2px;">
+                    <strong id="dashboard-coins-display" style="color: var(--accent-emerald); font-family: var(--font-mono); font-size: 1.15rem;">0</strong>
+                    <span style="color: var(--text-muted);">Total Earned</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Path Header Bar -->
+    <div class="glass-panel reveal active" style="padding: 24px 32px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-color: rgba(56, 189, 248, 0.25);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div class="card-icon-box icon-blue" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                <i class="fa-solid {{ track_info.icon if track_info else 'fa-compass' }}"></i>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 700;">Active Specialization</span>
+                <h2 style="font-size: 1.5rem; margin: 0;">
+                    Track: <span class="gradient-text" id="user-current-path">{{ current_user.recommended_path }}</span>
+                </h2>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+            {% if track_info %}
+            <a href="/track/{{ track_info.slug }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 16px;">
+                <i class="fa-solid fa-book-open" style="color: var(--primary);"></i> View 12-Week Syllabus
+            </a>
+            {% endif %}
+            <a href="/#discover" class="btn btn-outline" style="font-size: 0.85rem; padding: 8px 16px;">
+                <i class="fa-solid fa-arrows-rotate"></i> Switch Track
+            </a>
+        </div>
+    </div>
+
+    {% if current_user.recommended_path == 'Undecided' or not path_data %}
+        <!-- Empty State -->
+        <div class="glass-panel reveal active" style="text-align: center; padding: 60px 20px;">
+            <div class="card-icon-box icon-blue" style="width: 72px; height: 72px; font-size: 2rem; margin: 0 auto 20px;">
+                <i class="fa-solid fa-compass"></i>
+            </div>
+            <h3 style="font-size: 1.5rem; margin-bottom: 10px;">No Active Career Path Selected</h3>
+            <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 24px;">
+                Select a specialization from our 10 tracks or take the diagnostic quiz to populate your workspace.
+            </p>
+            <div style="display: flex; gap: 14px; justify-content: center;">
+                <a href="/#quiz" class="btn btn-primary btn-glow">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Take Pathfinder Quiz
+                </a>
+                <a href="/#discover" class="btn btn-secondary">
+                    <i class="fa-solid fa-compass"></i> Browse 10 Tracks
+                </a>
+            </div>
+        </div>
+    {% else %}
+
+        <!-- Main Workspace Grid: Daily Quests -->
+        <div style="display: grid; grid-template-columns: 1.55fr 1fr; gap: 32px; align-items: start;">
+
+            <!-- Left Column: Daily Quests -->
+            <div style="display: flex; flex-direction: column; gap: 28px;">
+
+                <!-- Daily Quests Deck -->
+                <div class="glass-panel" style="padding: 28px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div>
+                            <span class="section-badge" style="margin-bottom: 4px;">
+                                <i class="fa-solid fa-fire"></i> Daily Sprint
+                            </span>
+                            <h3 style="font-size: 1.35rem; margin: 0;">4 Quests Per Day</h3>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--accent-emerald); font-family: var(--font-mono); font-weight: 700;" id="daily-coins-earned">+0 COINS TODAY</span>
+                    </div>
+
+                    <div id="daily-quests-container" class="milestones-deck" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Quests will be rendered here by JavaScript -->
+                        <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 1.5rem; margin-bottom: 10px; display: block;"></i>
+                            Loading daily quests...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proof-of-Work Project Studio (The Real USP) -->
+                {% if track_info and track_info.capstones %}
+                <div class="glass-panel" style="padding: 28px; border-color: rgba(52, 211, 153, 0.25);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <span class="section-badge" style="background: rgba(52, 211, 153, 0.1); color: var(--accent-emerald); border-color: rgba(52, 211, 153, 0.25); margin-bottom: 4px;">
+                                <i class="fa-solid fa-rocket"></i> Proof-of-Work Studio (USP)
+                            </span>
+                            <h3 style="font-size: 1.35rem; margin: 0;">3 Resume Anchor Capstones</h3>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Verified Deliverables</span>
+                    </div>
+
+                    <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 24px; line-height: 1.6;">
+                        Watching tutorials doesn't get you hired. Building and shipping these 3 verified anchor capstones gives you the proof-of-work proof to showcase on GitHub and in interviews.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        {% for capstone in track_info.capstones %}
+                        <div class="pow-project-card">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                <h4 style="font-size: 1.15rem; color: var(--text-primary); margin: 0;">{{ capstone.title }}</h4>
+                                <span class="pill steep" style="font-size: 0.72rem;">{{ capstone.difficulty }}</span>
+                            </div>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.55; margin-bottom: 14px;">
+                                {{ capstone.summary }}
+                            </p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;">
+                                {% for tech in capstone.stack %}
+                                <span class="tech-pill">{{ tech }}</span>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Deliverables checklist -->
+                            <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px;">
+                                <span style="font-size: 0.75rem; text-transform: uppercase; font-family: var(--font-mono); color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 6px;">
+                                    Key Deliverable Criteria:
+                                </span>
+                                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--text-secondary);">
+                                    {% for feat in capstone.key_features %}
+                                    <li style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fa-solid fa-check" style="color: var(--accent-emerald); font-size: 0.75rem;"></i> {{ feat }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <!-- GitHub / Demo Link Submission Box -->
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="url" placeholder="https://github.com/your-username/project-repo" class="premium-input" id="repo-input-{{ loop.index }}" style="padding: 10px 14px; font-size: 0.85rem;">
+                                <button class="btn btn-outline" style="padding: 10px 16px; font-size: 0.85rem; white-space: nowrap;" onclick="saveProjectRepo({{ loop.index }})">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> Save Link
+                                </button>
+                            </div>
+                            <div id="repo-msg-{{ loop.index }}" style="font-size: 0.78rem; margin-top: 6px; color: var(--accent-emerald);"></div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Right Column: Curated Vault & Technical Screening Battlecards -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+
+                <!-- Curated Vault -->
+                <div class="glass-panel" style="padding: 24px;">
+                    <h3 style="font-size: 1.15rem; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-solid fa-bookmark" style="color: var(--secondary);"></i> Curated Learning Vault
+                    </h3>
+                    <div class="resource-vault">
+                        {% for resource in path_data.resources %}
+                        <a href="{{ resource.url }}" target="_blank" class="resource-item">
+                            <div class="resource-item-left">
+                                <div class="resource-icon-box">
+                                    <i class="fa-solid {{ resource.icon }}"></i>
+                                </div>
+                                <div class="resource-meta">
+                                    <strong>{{ resource.name }}</strong>
+                                    <span>Verified External Curriculum</span>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--text-muted); font-size: 0.85rem;"></i>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Technical Interview Battlecards -->
+                {% if track_info and track_info.interview_prep %}
+                <div class="glass-panel" style="padding: 24px;">
+                    <div style="margin-bottom: 14px;">
+                        <span class="section-badge" style="background: rgba(129, 140, 248, 0.1); color: var(--secondary); border-color: rgba(129, 140, 248, 0.25); margin-bottom: 4px;">
+                            <i class="fa-solid fa-user-check"></i> Interview Practice
+                        </span>
+                        <h4 style="font-size: 1.05rem; margin: 0;">Screening Battlecards</h4>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        {% for item in track_info.interview_prep %}
+                        <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 16px;">
+                            <strong style="color: var(--primary); font-size: 0.88rem; display: block; margin-bottom: 6px;">
+                                <i class="fa-solid fa-circle-question" style="margin-right: 4px;"></i> {{ item.q }}
+                            </strong>
+                            <p style="color: var(--text-secondary); font-size: 0.82rem; line-height: 1.5; margin: 0;">
+                                {{ item.a }}
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    {% endif %}
+</section>
+
+<!-- XP Toast Notification (repurposed for coins) -->
+<div id="xp-toast" class="xp-toast-hidden" style="position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, var(--accent-emerald), var(--primary)); color: white; padding: 16px 24px; border-radius: 12px; font-weight: 700; z-index: 9999; box-shadow: 0 8px 30px rgba(0,0,0,0.3); transition: all 0.3s ease;">
+    <i class="fa-solid fa-coin" style="margin-right: 8px;"></i>
+    <span id="toast-xp-amount">+10</span> Coins Earned!
+</div>
+
+<script>
+    // Local storage helper for project repo links
+    function saveProjectRepo(capstoneId) {
+        const input = document.getElementById(`repo-input-${capstoneId}`);
+        const msg = document.getElementById(`repo-msg-${capstoneId}`);
+        if (!input || !msg) return;
+
+        const url = input.value.trim();
+        if (!url) return;
+
+        const pathName = document.getElementById('user-current-path')?.innerText.trim() || 'Global';
+        localStorage.setItem(`skillspark_capstone_${pathName}_${capstoneId}`, url);
+
+        msg.innerHTML = '<i class="fa-solid fa-circle-check"></i> Project repo saved to portfolio profile!';
+        setTimeout(() => { msg.innerHTML = ''; }, 3000);
+    }
+
+    // Restore saved repos on load
+    document.addEventListener("DOMContentLoaded", () => {
+        const pathName = document.getElementById('user-current-path')?.innerText.trim() || 'Global';
+        for (let i = 1; i <= 3; i++) {
+            const saved = localStorage.getItem(`skillspark_capstone_${pathName}_${i}`);
+            const input = document.getElementById(`repo-input-${i}`);
+            if (saved && input) {
+                input.value = saved;
+            }
+        }
+
+        // Load daily quests
+        loadDailyQuests();
+    });
+</script>
+
+{% endblock %}
